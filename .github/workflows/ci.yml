@@ -69,13 +69,16 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest --cov=. --cov-report=xml || echo "No tests found or pytest not configured"
+          pytest --cov=. --cov-report=xml --cov-report=term || echo "No tests found or pytest not configured"
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          name: codecov-umbrella
         if: always()
 
   security:
