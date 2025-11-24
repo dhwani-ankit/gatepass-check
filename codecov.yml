@@ -4,9 +4,20 @@ coverage:
       default:
         target: auto
         threshold: 0.5%
+        base: auto
     patch:
       default:
         target: 75%
         threshold: 0%
+        base: auto
         if_ci_failed: ignore
+  ignore:
+    - "**/tests/**"
+    - "**/test/**"
+    - "**/__pycache__/**"
+    - "**/.venv/**"
+    - "**/venv/**"
+    - "**/node_modules/**"
+    - "**/.github/**"
+    - "**/docs/**"
 
