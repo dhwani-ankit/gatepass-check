@@ -11,7 +11,9 @@
 			{ "breaking": true, "release": "major" }
 		],
 		"parserOpts": {
-			"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
+			"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"],
+			"mergePattern": "^Merge|^Revert",
+			"mergeCorrespondence": null
 		}
 	}],
 		[
@@ -35,12 +37,12 @@
 				},
 			"writerOpts": {
 				"commitsSort": ["scope", "subject"],
-				"commitPartial": "- {{#if scope}}**{{scope}}:** {{/if}}{{subject}} ([`{{shortHash}}`]({{@root.host}}/{{@root.owner}}/{{@root.repository}}/commit/{{hash}}))",
+				"commitPartial": "{{subject}} ({{hash}})",
 				"headerPartial": "",
-				"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}## {{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{#if commits}}{{#each commits}}{{> commit}}{{/each}}\n{{/if}}{{/each}}{{/each}}{{/if}}",
+				"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}{{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{#if commits}}{{#each commits}}{{> commit}}\n{{/each}}{{/if}}{{/each}}{{/each}}{{/if}}",
 				"transform": {
 					"commit": "lowerCase",
-					"emoji": true,
+					"emoji": false,
 					"references": true,
 					"revert": true
 				},

@@ -71,6 +71,20 @@ jobs:
           echo "=== Semantic commits only ==="
           git log --oneline --no-merges --grep="^feat\|^fix\|^perf\|^revert" -10 || echo "No semantic commits found"
           
+      - name: Filter merge commits
+        run: |
+          echo "=== Filtering merge commits ==="
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tag, checking all commits"
+            git log --oneline --no-merges --format="%H %s" > /tmp/filtered_commits.txt
+          else
+            echo "Checking commits since $LAST_TAG"
+            git log --oneline --no-merges ${LAST_TAG}..HEAD --format="%H %s" > /tmp/filtered_commits.txt
+          fi
+          echo "Filtered commits (excluding merge commits):"
+          cat /tmp/filtered_commits.txt || echo "No commits found"
+          
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
