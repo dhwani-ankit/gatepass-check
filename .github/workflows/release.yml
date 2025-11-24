@@ -55,14 +55,21 @@ jobs:
           echo "=== Recent commits ==="
           git log --oneline -10
           echo ""
+          echo "=== Commits since last tag ==="
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tag, showing all commits"
+            git log --oneline --no-merges
+          else
+            echo "Commits since $LAST_TAG:"
+            git log --oneline --no-merges ${LAST_TAG}..HEAD
+          fi
+          echo ""
           echo "=== Last tag ==="
           git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"
           echo ""
-          echo "=== Branch info ==="
-          git branch -a
-          echo ""
-          echo "=== Remote info ==="
-          git remote -v
+          echo "=== Semantic commits only ==="
+          git log --oneline --no-merges --grep="^feat\|^fix\|^perf\|^revert" -10 || echo "No semantic commits found"
           
       - name: Create Release
         env:
