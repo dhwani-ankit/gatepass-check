@@ -4,83 +4,80 @@
 		[
 			"@semantic-release/commit-analyzer",
 			{
-				"preset": "conventionalcommits",
+				"preset": "angular",
 				"releaseRules": [
 					{ "type": "feat", "release": "minor" },
 					{ "type": "fix", "release": "patch" },
 					{ "type": "perf", "release": "patch" },
 					{ "type": "revert", "release": "patch" },
-					{ "type": "docs", "release": false },
-					{ "type": "style", "release": false },
-					{ "type": "chore", "release": false },
-					{ "type": "refactor", "release": false },
-					{ "type": "test", "release": false },
-					{ "type": "build", "release": false },
-					{ "type": "ci", "release": false },
 					{ "breaking": true, "release": "major" }
 				],
 				"parserOpts": {
 					"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"],
-					"mergePattern": "^Merge pull request #(\\d+) from (.*)$",
-					"mergeCorrespondence": ["id", "source"]
+					"mergePattern": "^Merge|^Revert",
+					"mergeCorrespondence": null
 				}
 			}
 		],
 		[
 			"@semantic-release/release-notes-generator",
 			{
-				"preset": "conventionalcommits",
+				"preset": "angular",
 				"presetConfig": {
 					"types": [
-						{ "type": "feat", "section": "🎉 New Features", "hidden": false },
-						{ "type": "fix", "section": "🐛 Bug Fixes", "hidden": false },
-						{ "type": "perf", "section": "⚡ Performance Improvements", "hidden": false },
-						{ "type": "revert", "section": "⏪ Reverts", "hidden": false },
-						{ "type": "docs", "section": "📚 Documentation", "hidden": false },
-						{ "type": "style", "section": "💅 Code Style", "hidden": false },
-						{ "type": "refactor", "section": "♻️ Code Refactoring", "hidden": false },
-						{ "type": "test", "section": "✅ Tests", "hidden": false },
-						{ "type": "build", "section": "📦 Build System", "hidden": false },
-						{ "type": "ci", "section": "👷 CI/CD", "hidden": false },
-						{ "type": "chore", "section": "🔧 Chores", "hidden": false }
+						{ "type": "feat", "section": "Features" },
+						{ "type": "fix", "section": "Bug Fixes" },
+						{ "type": "perf", "section": "Performance Improvements" },
+						{ "type": "revert", "section": "Reverts" },
+						{ "type": "docs", "section": "Documentation", "hidden": false },
+						{ "type": "style", "section": "Styles", "hidden": false },
+						{ "type": "chore", "section": "Miscellaneous Chores", "hidden": false },
+						{ "type": "refactor", "section": "Code Refactoring", "hidden": false },
+						{ "type": "test", "section": "Tests", "hidden": false },
+						{ "type": "build", "section": "Build System", "hidden": false },
+						{ "type": "ci", "section": "Continuous Integration", "hidden": false }
 					]
 				},
 				"writerOpts": {
 					"commitsSort": ["scope", "subject"],
-					"mainTemplate": "# 📋 Release Notes\n\n{{#each commitGroups}}\n\n## {{title}}\n\n{{#each commits}}- {{#if scope}}**{{scope}}:** {{/if}}{{subject}} [{{hash}}]{{#if references}}{{#each references}}{{#if issue}} (#{{issue}}){{/if}}{{/each}}{{/if}}\n{{/each}}\n{{/each}}{{#if noteGroups}}\n\n---\n\n## ⚠️ BREAKING CHANGES\n\n{{#each noteGroups}}{{#each notes}}- {{text}}\n{{/each}}{{/each}}{{/if}}\n\n---\n\n## 👥 Contributors\n\nThank you to all contributors who made this release possible!\n\n---\n\n**Full Changelog**: {{compareUrl}}",
+					"commitPartial": "{{subject}} ({{hash}})",
 					"headerPartial": "",
-					"commitPartial": "",
-					"footerPartial": "",
+					"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}{{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{#if commits}}{{#each commits}}{{> commit}}\n{{/each}}{{/if}}{{/each}}{{/each}}{{/if}}",
+					"transform": {
+						"commit": "lowerCase",
+						"emoji": false,
+						"references": true,
+						"revert": true
+					},
 					"groupBy": "type",
-					"commitGroupsSort": ["feat", "fix", "perf", "revert", "docs", "style", "refactor", "test", "build", "ci", "chore"]
+					"commitGroupsSort": "title"
 				}
 			}
 		],
 		[
 			"@semantic-release/changelog",
 			{
-				"changelogFile": "CHANGELOG.md",
-				"changelogTitle": "# 📝 Changelog\n\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
+				"changelogFile": "CHANGELOG.md"
 			}
 		],
 		[
 			"@semantic-release/exec",
 			{
-				"prepareCmd": "python $GITHUB_WORKSPACE/.github/helper/update-version.py ${nextRelease.version} || sed -ir \"s/[0-9]*\\.[0-9]*\\.[0-9]*/${nextRelease.version}/\" */__init__.py"
+				"prepareCmd": "python $GITHUB_WORKSPACE/.github/helper/update-version.py ${nextRelease.version}"
 			}
 		],
 		[
 			"@semantic-release/git",
 			{
 				"assets": ["CHANGELOG.md", "*/__init__.py"],
-				"message": "chore(release): 🚀 ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+				"message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 			}
 		],
 		[
 			"@semantic-release/github",
 			{
-				"successComment": "🎉 This ${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version ${nextRelease.version}",
-				"releasedLabels": ["released"],
+				"successComment": false,
+				"releasedLabels": false,
 				"assets": [],
 				"addReleases": "bottom"
 			}
