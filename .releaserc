@@ -1,21 +1,29 @@
 {
 	"branches": ["main", "master"],
 	"plugins": [
-	["@semantic-release/commit-analyzer", {
-		"preset": "angular",
-		"releaseRules": [
-			{ "type": "feat", "release": "minor" },
-			{ "type": "fix", "release": "patch" },
-			{ "type": "perf", "release": "patch" },
-			{ "type": "revert", "release": "patch" },
-			{ "breaking": true, "release": "major" }
+		[
+			"@semantic-release/commit-analyzer",
+			{
+				"preset": "angular",
+				"releaseRules": [
+					{ "type": "feat", "release": "minor" },
+					{ "type": "fix", "release": "patch" },
+					{ "type": "perf", "release": "patch" },
+					{ "type": "revert", "release": "patch" },
+					{ "type": "docs", "release": false },
+					{ "type": "style", "release": false },
+					{ "type": "chore", "release": false },
+					{ "type": "refactor", "release": false },
+					{ "type": "test", "release": false },
+					{ "type": "build", "release": false },
+					{ "type": "ci", "release": false },
+					{ "breaking": true, "release": "major" }
+				],
+				"parserOpts": {
+					"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
+				}
+			}
 		],
-		"parserOpts": {
-			"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"],
-			"mergePattern": "^Merge|^Revert",
-			"mergeCorrespondence": null
-		}
-	}],
 		[
 			"@semantic-release/release-notes-generator",
 			{
@@ -35,20 +43,18 @@
 						{ "type": "ci", "section": "⚙️ Continuous Integration", "hidden": false }
 					]
 				},
-			"writerOpts": {
-				"commitsSort": ["scope", "subject"],
-				"commitPartial": "{{subject}} ({{hash}})",
-				"headerPartial": "",
-				"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}{{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{#if commits}}{{#each commits}}{{> commit}}\n{{/each}}{{/if}}{{/each}}{{/each}}{{/if}}",
-				"transform": {
-					"commit": "lowerCase",
-					"emoji": false,
-					"references": true,
-					"revert": true
-				},
-				"groupBy": "type",
-				"commitGroupsSort": "title"
-			}
+				"writerOpts": {
+					"commitsSort": ["scope", "subject"],
+					"commitPartial": "* {{subject}} ({{#if hash}}__#{{hash}}__{{/if}})\n{{#if author}}Authors: {{#each author}}__@{{this}}__{{#unless @last}}, {{/unless}}{{/each}}{{/if}}{{#if reviewer}} Reviewers: {{#each reviewer}}__@{{this}}__{{#unless @last}}, {{/unless}}{{/each}}{{/if}}",
+					"headerPartial": "## {{title}}\n\n",
+					"mainTemplate": "{{> header}}\n\n{{#each commitGroups}}{{#if title}}### {{title}}\n\n{{/if}}{{#each commits}}{{> commit}}{{/each}}{{/each}}{{#if noteGroups}}{{#each noteGroups}}### {{title}}\n\n{{#each notes}}* {{text}}\n{{/each}}{{/each}}{{/if}}",
+					"transform": {
+						"hash": "short",
+						"header": "uppercase"
+					},
+					"groupBy": "type",
+					"commitGroupsSort": "title"
+				}
 			}
 		],
 		[
@@ -58,24 +64,26 @@
 			}
 		],
 		[
-			"@semantic-release/exec", {
-				"prepareCmd": "python $GITHUB_WORKSPACE/.github/helper/update-version.py ${nextRelease.version}"
+			"@semantic-release/exec",
+			{
+				"prepareCmd": "python $GITHUB_WORKSPACE/.github/helper/update-version.py ${nextRelease.version} || sed -ir \"s/[0-9]*\\.[0-9]*\\.[0-9]*/${nextRelease.version}/\" */__init__.py"
 			}
 		],
 		[
-			"@semantic-release/git", {
+			"@semantic-release/git",
+			{
 				"assets": ["CHANGELOG.md", "*/__init__.py"],
 				"message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 			}
 		],
-	[
-		"@semantic-release/github",
-		{
-			"successComment": false,
-			"releasedLabels": false,
-			"assets": [],
-			"addReleases": "bottom"
-		}
-	]
+		[
+			"@semantic-release/github",
+			{
+				"successComment": false,
+				"releasedLabels": false,
+				"assets": [],
+				"addReleases": "bottom"
+			}
+		]
 	]
 }
