@@ -1,3 +1,10 @@
+## [3.3.1](https://github.com/dhwani-ankit/gatepass-check/compare/v3.3.0...v3.3.1) (2025-11-24)
+
+
+### Performance Improvements
+
+* add new feature ([94dad16](https://github.com/dhwani-ankit/gatepass-check/commit/94dad16e1b5f0f2892e38c4e16f0ab1c8ff787e7))
+
 * Merge pull request #12 from dhwani-ankit/ankit (__#6a7b4204f84033c9dc1bb29ab75a83bcf9babbd0__)
 
 ### feat
