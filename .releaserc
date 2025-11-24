@@ -47,10 +47,10 @@
 				"commitsSort": ["scope", "subject"],
 				"commitPartial": "{{subject}} ({{hash}})",
 				"headerPartial": "",
-				"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}{{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{#if commits}}{{#each commits}}{{> commit}}\n{{/each}}{{/if}}{{/each}}{{#if @root.linkCompare}}\n\n---\n\n## 👥 Contributors\n\n{{#each commits}}{{#if author.name}}- {{author.name}}{{#if author.email}} <{{author.email}}>{{/if}}{{/if}}\n{{/each}}{{/if}}{{/each}}{{/if}}",
+				"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}{{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{#if commits}}{{#each commits}}{{> commit}}\n{{/each}}{{/if}}{{/each}}{{#if @root.linkCompare}}\n\n---\n\n## Contributors\n\n{{#each commits}}{{#if author.name}}- {{author.name}}{{#if author.email}} <{{author.email}}>{{/if}}{{/if}}\n{{/each}}{{/if}}{{/each}}{{/if}}",
 				"transform": {
 					"commit": "lowerCase",
-					"emoji": true,
+					"emoji": false,
 					"references": true,
 					"revert": true
 				},
