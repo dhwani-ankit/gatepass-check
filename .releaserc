@@ -45,15 +45,14 @@
 				},
 				"writerOpts": {
 					"commitsSort": ["scope", "subject"],
-					"commitPartial": "* {{subject}} ({{#if hash}}__#{{hash}}__{{/if}})\n{{#if author}}Authors: {{#each author}}__@{{this}}__{{#unless @last}}, {{/unless}}{{/each}}{{/if}}{{#if reviewer}} Reviewers: {{#each reviewer}}__@{{this}}__{{#unless @last}}, {{/unless}}{{/each}}{{/if}}",
-					"headerPartial": "## {{title}}\n\n",
-					"mainTemplate": "{{> header}}\n\n{{#each commitGroups}}{{#if title}}### {{title}}\n\n{{/if}}{{#each commits}}{{> commit}}{{/each}}{{/each}}{{#if noteGroups}}{{#each noteGroups}}### {{title}}\n\n{{#each notes}}* {{text}}\n{{/each}}{{/each}}{{/if}}",
+					"commitPartial": "* {{subject}} {{#if hash}}(__#{{hash}}__){{/if}}\n",
+					"headerPartial": "### {{title}}\n\n",
+					"mainTemplate": "{{#each commitGroups}}{{#if title}}{{> header}}{{/if}}{{#each commits}}{{> commit}}{{/each}}\n{{/each}}{{#if noteGroups}}{{#each noteGroups}}### ⚠ BREAKING CHANGES\n\n{{#each notes}}* {{text}}\n{{/each}}{{/each}}{{/if}}",
 					"transform": {
-						"hash": "short",
-						"header": "uppercase"
+						"hash": "short"
 					},
 					"groupBy": "type",
-					"commitGroupsSort": "title"
+					"commitGroupsSort": ["feat", "fix", "perf", "revert", "docs", "style", "refactor", "test", "build", "ci", "chore"]
 				}
 			}
 		],
