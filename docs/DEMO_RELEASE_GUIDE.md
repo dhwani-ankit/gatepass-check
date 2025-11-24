@@ -16,6 +16,7 @@ This guide will help you create a demo release to test the `dhwani-release-bot` 
    ```
 
 
+
 2. **Commit with semantic format:**
    ```bash
    # For a feature (creates minor release: 1.0.0 → 1.1.0)
