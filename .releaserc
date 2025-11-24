@@ -20,7 +20,9 @@
 					{ "breaking": true, "release": "major" }
 				],
 				"parserOpts": {
-					"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
+					"noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"],
+					"mergePattern": "^Merge",
+					"mergeCorrespondence": null
 				}
 			}
 		],
@@ -30,23 +32,24 @@
 				"preset": "angular",
 				"presetConfig": {
 					"types": [
-						{ "type": "feat", "section": "✨ Features" },
-						{ "type": "fix", "section": "🐛 Bug Fixes" },
-						{ "type": "perf", "section": "⚡ Performance Improvements" },
-						{ "type": "revert", "section": "⏪ Reverts" },
-						{ "type": "docs", "section": "📝 Documentation", "hidden": false },
-						{ "type": "style", "section": "💎 Styles", "hidden": false },
-						{ "type": "refactor", "section": "♻️ Code Refactoring", "hidden": false },
-						{ "type": "test", "section": "✅ Tests", "hidden": false },
-						{ "type": "build", "section": "🏗️ Build System", "hidden": false },
-						{ "type": "ci", "section": "👷 Continuous Integration", "hidden": false },
-						{ "type": "chore", "section": "🔧 Miscellaneous Chores", "hidden": false }
+						{ "type": "feat", "section": "Features" },
+						{ "type": "fix", "section": "Bug Fixes" },
+						{ "type": "perf", "section": "Performance Improvements" },
+						{ "type": "revert", "section": "Reverts" },
+						{ "type": "docs", "section": "Documentation", "hidden": false },
+						{ "type": "style", "section": "Styles", "hidden": false },
+						{ "type": "refactor", "section": "Code Refactoring", "hidden": false },
+						{ "type": "test", "section": "Tests", "hidden": false },
+						{ "type": "build", "section": "Build System", "hidden": false },
+						{ "type": "ci", "section": "Continuous Integration", "hidden": false },
+						{ "type": "chore", "section": "Miscellaneous Chores", "hidden": false }
 					]
 				},
 				"writerOpts": {
 					"commitsSort": ["scope", "subject"],
-					"mainTemplate": "{{> header}}\n\n{{> commits}}\n\n{{> footer}}",
-					"footerPartial": "---\n\n### 👥 Authors\n\n{{#if contributors}}\n{{#each contributors}}\n* {{#if this.login}}@{{this.login}}{{else}}{{this.name}}{{/if}} ({{this.commits}} commit{{#unless (eq this.commits 1)}}s{{/unless}})\n{{/each}}\n{{else}}\nNo contributors for this release.\n{{/if}}"
+					"commitPartial": "{{subject}} ({{hash}})",
+					"headerPartial": "",
+					"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}{{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{#if commits}}{{#each commits}}{{> commit}}\n{{/each}}{{/if}}{{/each}}\n\n---\n\nAuthors\n\n{{#if contributors}}{{#each contributors}}{{#if this.login}}@{{this.login}}{{else}}{{this.name}}{{/if}} ({{this.commits}} commit{{#unless (eq this.commits 1)}}s{{/unless}})\n{{/each}}{{else}}No contributors for this release.\n{{/if}}{{/each}}{{/if}}"
 				}
 			}
 		],
