@@ -2,6 +2,13 @@ name: Generate Semantic Release
 on:
   push:
     branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      force_release:
+        description: 'Force release even if no changes detected'
+        required: false
+        default: 'false'
+        type: boolean
       
 permissions:
   contents: write
@@ -15,11 +22,18 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.DHWANI_RELEASE_BOT_APP_ID }}
+          private_key: ${{ secrets.DHWANI_RELEASE_BOT_PRIVATE_KEY }}
+          
       - name: Checkout Entire Repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
           persist-credentials: true
           
       - name: Setup Node.js
@@ -33,9 +47,9 @@ jobs:
           
       - name: Create Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: "github-actions[bot]"
-          GIT_AUTHOR_EMAIL: "github-actions[bot]@users.noreply.github.com"
-          GIT_COMMITTER_NAME: "github-actions[bot]"
-          GIT_COMMITTER_EMAIL: "github-actions[bot]@users.noreply.github.com"
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GIT_AUTHOR_NAME: "dhwani-release-bot"
+          GIT_AUTHOR_EMAIL: "dhwani-release-bot[bot]@users.noreply.github.com"
+          GIT_COMMITTER_NAME: "dhwani-release-bot"
+          GIT_COMMITTER_EMAIL: "dhwani-release-bot[bot]@users.noreply.github.com"
         run: npx semantic-release
