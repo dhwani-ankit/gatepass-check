@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.event_name }}-${{ github.event.number || github.sha }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name }}-${{ github.ref }}-${{ github.event.number || github.sha }}
+  cancel-in-progress: false
 
 jobs:
   dependency-vulnerability:

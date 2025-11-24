@@ -43,7 +43,7 @@ jobs:
           
       - name: Setup dependencies
         run: |
-          npm install @semantic-release/git @semantic-release/exec @semantic-release/github @semantic-release/changelog --no-save
+          npm install @semantic-release/git @semantic-release/exec @semantic-release/github @semantic-release/changelog @semantic-release/commit-analyzer @semantic-release/release-notes-generator --no-save
           
       - name: Create Release
         env:
