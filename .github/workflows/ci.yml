@@ -88,10 +88,18 @@ jobs:
           files: ./coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+          slug: ${{ github.repository }}
           flags: unittests
           name: codecov-umbrella
           verbose: true
+          override_commit: ${{ github.event.pull_request.head.sha || github.sha }}
+          override_branch: ${{ github.event.pull_request.head.ref || github.ref_name }}
         if: steps.coverage-check.outputs.exists == 'true'
+        
+      - name: Codecov Upload Status
+        if: always() && steps.coverage-check.outputs.exists == 'true'
+        run: |
+          echo "Codecov upload completed. Check https://codecov.io/gh/${{ github.repository }} for coverage reports."
 
   security:
     name: 'Security Check'
