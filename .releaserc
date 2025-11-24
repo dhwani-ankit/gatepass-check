@@ -31,7 +31,16 @@
 					]
 				},
 				"writerOpts": {
-					"commitsSort": ["subject", "scope"]
+					"commitsSort": ["subject", "scope"],
+					"commitPartial": "- {{#if scope}}**{{scope}}:** {{/if}}{{subject}} ([`{{shortHash}}`]({{@root.host}}/{{@root.owner}}/{{@root.repository}}/commit/{{hash}}))",
+					"headerPartial": "",
+					"mainTemplate": "{{#if releases}}{{#each releases}}{{#if @first}}{{#if tag}}## {{tag}} ({{date}})\n\n{{/if}}{{/if}}{{#each noteGroups}}{{> notes}}{{/each}}{{#if commits}}{{#each commits}}{{> commit}}{{/each}}\n{{/if}}{{/each}}{{/if}}",
+					"transform": {
+						"commit": "lowerCase",
+						"emoji": true,
+						"references": true,
+						"revert": true
+					}
 				}
 			}
 		],
