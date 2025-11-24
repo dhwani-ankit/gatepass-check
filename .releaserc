@@ -47,34 +47,10 @@
 				},
 				"writerOpts": {
 					"commitsSort": ["scope", "subject"],
-					"mainTemplate": "# 📋 Release Notes\n\n{{#each commitGroups}}\n\n## {{title}}\n\n{{#each commits}}- {{#if scope}}**{{scope}}:** {{/if}}{{subject}} [{{hash}}]{{#if references}}{{#each references}}{{#if issue}} (#{{issue}}){{/if}}{{/each}}{{/if}}\n{{/each}}\n{{/each}}{{#if noteGroups}}\n\n---\n\n## ⚠️ BREAKING CHANGES\n\n{{#each noteGroups}}{{#each notes}}- {{text}}\n{{/each}}{{/each}}{{/if}}\n\n---\n\n## 👥 Contributors\n\n{{#each commits}}{{#if author}}{{#unless @root.contributors.[author.name]}}{{@root.contributors.[author.name] = true}}{{/unless}}{{/if}}{{/each}}{{#each @root.contributors}}{{#if @key}}- @{{@key}}\n{{/if}}{{/each}}\n---\n\n**Full Changelog**: {{compareUrl}}",
+					"mainTemplate": "# 📋 Release Notes\n\n{{#each commitGroups}}\n\n## {{title}}\n\n{{#each commits}}- {{#if scope}}**{{scope}}:** {{/if}}{{subject}} [{{hash}}]{{#if references}}{{#each references}}{{#if issue}} (#{{issue}}){{/if}}{{/each}}{{/if}}\n{{/each}}\n{{/each}}{{#if noteGroups}}\n\n---\n\n## ⚠️ BREAKING CHANGES\n\n{{#each noteGroups}}{{#each notes}}- {{text}}\n{{/each}}{{/each}}{{/if}}\n\n---\n\n## 👥 Contributors\n\nThank you to all contributors who made this release possible!\n\n---\n\n**Full Changelog**: {{compareUrl}}",
 					"headerPartial": "",
 					"commitPartial": "",
 					"footerPartial": "",
-					"transform": function(commit, context) {
-						if (typeof commit.hash === 'string') {
-							commit.hash = commit.hash.substring(0, 7);
-						}
-						
-						if (commit.subject) {
-							commit.subject = commit.subject.trim();
-						}
-						
-						// Extract contributors
-						if (!context.contributors) {
-							context.contributors = {};
-						}
-						
-						if (commit.author && commit.author.name) {
-							context.contributors[commit.author.name] = true;
-						}
-						
-						if (commit.committer && commit.committer.name) {
-							context.contributors[commit.committer.name] = true;
-						}
-						
-						return commit;
-					},
 					"groupBy": "type",
 					"commitGroupsSort": ["feat", "fix", "perf", "revert", "docs", "style", "refactor", "test", "build", "ci", "chore"]
 				}
