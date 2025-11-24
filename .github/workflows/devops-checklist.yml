@@ -1,0 +1,99 @@
+name: DevOps Checklist Reminder
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  checklist-reminder:
+    name: Add DevOps Checklist Reminder
+    runs-on: ubuntu-latest
+    if: |
+      github.event.pull_request.base.ref == 'main' || 
+      github.event.pull_request.base.ref == 'master'
+    
+    steps:
+      - name: Check if checklist comment exists
+        id: check-comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            
+            const botComment = comments.data.find(
+              comment => comment.user.type === 'Bot' && 
+              comment.body.includes('DevOps Checklist')
+            );
+            
+            return { exists: !!botComment, commentId: botComment?.id };
+      
+      - name: Add or update DevOps checklist reminder
+        if: steps.check-comment.outputs.exists != 'true' || github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const checklist = `## 🔧 DevOps Checklist Reminder
+            
+            Before merging this PR, please ensure all items in the PR template are checked:
+            
+            ### Critical Checks
+            - [ ] All CI/CD checks are passing
+            - [ ] Code quality checks passed
+            - [ ] Security scans completed
+            - [ ] Test coverage meets requirements
+            - [ ] All reviewers have approved
+            
+            ### Pre-Release Checks
+            - [ ] Version number updated (if applicable)
+            - [ ] CHANGELOG.md updated (if applicable)
+            - [ ] Breaking changes documented (if any)
+            
+            ### Deployment Readiness
+            - [ ] Database migrations tested (if applicable)
+            - [ ] Configuration changes documented
+            - [ ] Rollback plan prepared (if high-risk)
+            
+            **Note:** This is an automated reminder. Please review the full checklist in the PR description above.`;
+            
+            // Check if comment already exists
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            
+            const existingComment = comments.data.find(
+              comment => comment.user.type === 'Bot' && 
+              comment.body.includes('DevOps Checklist Reminder')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: checklist
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: checklist
+              });
+            }
+
