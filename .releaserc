@@ -44,7 +44,9 @@
 					]
 				},
 				"writerOpts": {
-					"commitsSort": ["scope", "subject"]
+					"commitsSort": ["scope", "subject"],
+					"mainTemplate": "{{> header}}\n\n{{> commits}}\n\n{{> footer}}",
+					"footerPartial": "---\n\n### 👥 Authors\n\n{{#if contributors}}\n{{#each contributors}}\n* {{#if this.login}}@{{this.login}}{{else}}{{this.name}}{{/if}} ({{this.commits}} commit{{#unless (eq this.commits 1)}}s{{/unless}})\n{{/each}}\n{{else}}\nNo contributors for this release.\n{{/if}}"
 				}
 			}
 		],
