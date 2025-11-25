@@ -17,26 +17,6 @@ jobs:
       github.event.pull_request.base.ref == 'master'
     
     steps:
-      - name: Check if checklist comment exists
-        id: check-comment
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const pr = context.payload.pull_request;
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-            });
-            
-            const botComment = comments.data.find(
-              comment => comment.user.type === 'Bot' && 
-              comment.body.includes('DevOps Checklist')
-            );
-            
-            return { exists: !!botComment, commentId: botComment?.id };
-      
       - name: Check if deployment notes comment exists
         id: check-deployment-notes
         uses: actions/github-script@v8
@@ -52,80 +32,12 @@ jobs:
             
             const botComment = comments.data.find(
               comment => comment.user.type === 'Bot' && 
-              comment.body.includes('Deployment Notes')
+              comment.body.includes('Production Deployment Release Document')
             );
             
             return { exists: !!botComment, commentId: botComment?.id };
       
-      - name: Add or update DevOps checklist reminder
-        if: steps.check-comment.outputs.exists != 'true' || github.event.action == 'opened'
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const pr = context.payload.pull_request;
-            const checklist = `## 🔧 DevOps Checklist - Workflow Review
-            
-            **Please review all workflows and checks before merging:**
-            
-            ### Workflow Status Review
-            - [ ] All CI/CD workflows are passing
-            - [ ] Quality Checks workflow passed
-            - [ ] Security Scan workflow passed
-            - [ ] Code quality checks passed
-            - [ ] Test coverage meets requirements
-            
-            ### Review Status
-            - [ ] All required reviewers have approved
-            - [ ] Code review completed
-            - [ ] Security review completed (if applicable)
-            
-            ### Pre-Merge Verification
-            - [ ] Deployment Notes document reviewed (see below)
-            - [ ] All commits reviewed
-            - [ ] Breaking changes identified (if any)
-            - [ ] Version number verified (if applicable)
-            
-            ### Final Checks
-            - [ ] No blocking issues or errors
-            - [ ] Ready for production deployment
-            - [ ] Rollback plan understood (if high-risk)
-            
-            ---
-            **Note:** This checklist is for DevOps team to verify all workflows and checks before merging. Deployment Notes are automatically generated below.`;
-            
-            // Check if comment already exists
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-            });
-            
-            const existingComment = comments.data.find(
-              comment => comment.user.type === 'Bot' && 
-              comment.body.includes('DevOps Checklist Reminder') &&
-              !comment.body.includes('Deployment Notes')
-            );
-            
-            if (existingComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: checklist
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                body: checklist
-              });
-            }
-      
-      - name: Generate Deployment Notes automatically
+      - name: Generate Deployment Notes automatically (Comment 1)
         if: steps.check-deployment-notes.outputs.exists != 'true' || github.event.action == 'opened'
         uses: actions/github-script@v8
         with:
@@ -361,7 +273,7 @@ jobs:
             
             const existingComment = comments.data.find(
               comment => comment.user.type === 'Bot' && 
-              comment.body.includes('Deployment Notes')
+              comment.body.includes('Production Deployment Release Document')
             );
             
             if (existingComment) {
@@ -380,5 +292,93 @@ jobs:
                 issue_number: pr.number,
                 body: deploymentNotes
               });
+            }
+      
+      - name: Check if checklist comment exists
+        id: check-comment
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            
+            const botComment = comments.data.find(
+              comment => comment.user.type === 'Bot' && 
+              comment.body.includes('DevOps Checklist - Workflow Review')
+            );
+            
+            return { exists: !!botComment, commentId: botComment?.id };
+      
+      - name: Add or update DevOps checklist reminder (Comment 2)
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const checklist = `## 🔧 DevOps Checklist - Workflow Review
+            
+            **Please review all workflows and checks before merging:**
+            
+            ### Workflow Status Review
+            - [ ] All CI/CD workflows are passing
+            - [ ] Quality Checks workflow passed
+            - [ ] Security Scan workflow passed
+            - [ ] Code quality checks passed
+            - [ ] Test coverage meets requirements
+            
+            ### Review Status
+            - [ ] All required reviewers have approved
+            - [ ] Code review completed
+            - [ ] Security review completed (if applicable)
+            
+            ### Pre-Merge Verification
+            - [ ] Deployment Notes document reviewed (see Deployment Notes comment above)
+            - [ ] All commits reviewed
+            - [ ] Breaking changes identified (if any)
+            - [ ] Version number verified (if applicable)
+            
+            ### Final Checks
+            - [ ] No blocking issues or errors
+            - [ ] Ready for production deployment
+            - [ ] Rollback plan understood (if high-risk)
+            
+            ---
+            **Note:** This checklist is for DevOps team to verify all workflows and checks before merging.`;
+            
+            // Check if comment already exists
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            
+            const existingComment = comments.data.find(
+              comment => comment.user.type === 'Bot' && 
+              comment.body.includes('DevOps Checklist - Workflow Review')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: checklist
+              });
+              console.log('Updated existing DevOps Checklist comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: checklist
+              });
+              console.log('Created new DevOps Checklist comment');
             }
 
