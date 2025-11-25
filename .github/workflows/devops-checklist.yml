@@ -66,7 +66,7 @@ jobs:
             const pr = context.payload.pull_request;
             const checklist = `## 🔧 DevOps Checklist Reminder
             
-            Before merging this PR, please ensure all items in the PR template are checked:
+            Before merging this PR, please ensure all items are checked:
             
             ### Critical Checks
             - [ ] All CI/CD checks are passing
@@ -79,14 +79,27 @@ jobs:
             - [ ] Version number updated (if applicable)
             - [ ] CHANGELOG.md updated (if applicable)
             - [ ] Breaking changes documented (if any)
+            - [ ] Release type identified (Major/Minor/Patch)
             
             ### Deployment Readiness
-            - [ ] Database migrations tested (if applicable)
-            - [ ] Configuration changes documented
-            - [ ] Rollback plan prepared (if high-risk)
+            - [ ] Deployment release document completed (see Deployment Notes below)
+            - [ ] All repositories listed with release numbers
+            - [ ] Feature details documented for each repository
+            - [ ] Dependencies identified and documented
+            - [ ] Database changes identified (if any)
+            - [ ] Testing completed and documented
+            - [ ] Known issues documented
+            - [ ] Contact information provided
+            - [ ] Rollback plan prepared
+            
+            ### Post-Merge (DevOps Team)
+            - [ ] Deployment details filled in
+            - [ ] Deployment instructions followed
+            - [ ] Post-deployment checklist completed
+            - [ ] Deployment acknowledged
             
             ---
-            **Note:** This is an automated reminder. Please review the full checklist in the PR description above.`;
+            **Note:** This is an automated reminder. Please complete the Deployment Notes document below before merging.`;
             
             // Check if comment already exists
             const comments = await github.rest.issues.listComments({
@@ -126,61 +139,120 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pr = context.payload.pull_request;
-            const deploymentNotes = `## 📝 Deployment Notes
+            const deploymentNotes = `## 📝 Production Deployment Release Document
             
-            Please provide deployment notes below (if applicable):
+            Please fill out the deployment release document below:
             
-            **Deployment Instructions:**
-            - [ ] Deployment steps documented
-            - [ ] Environment variables updated (if any)
-            - [ ] Dependencies updated/installed
-            - [ ] Service restart required: \`Yes\` / \`No\`
+            **Release Information:**
+            - [ ] Version: \`\`\`<!-- e.g., 4.2.0 -->\`\`\`
+            - [ ] Release Date: \`\`\`<!-- e.g., 2025-01-23 -->\`\`\`
+            - [ ] Prepared by: \`\`\`<!-- Your name -->\`\`\`
+            - [ ] Approved by: \`\`\`<!-- QA/Reviewer names -->\`\`\`
+            - [ ] Release Type: \`\`\`<!-- Major / Minor / Patch -->\`\`\`
             
-            **Deployment Files:**
-            - [ ] Deployment scripts attached/committed
-            - [ ] Configuration files updated
-            - [ ] Migration scripts included (if applicable)
-            - [ ] Deployment documentation attached
-            
-            **📎 Attach Deployment Files:**
-            
-            To attach deployment files, you can:
-            1. **Commit files to this PR** - Add deployment scripts/configs to the repository
-            2. **Link to files** - Reference files in comments (e.g., \`deploy/scripts/deploy.sh\`)
-            3. **Upload to artifacts** - Use workflow artifacts for large files
-            
-            **File References:**
+            **Deployment Branches:**
             \`\`\`
-            <!-- List deployment files here, e.g.:
-            - deploy/scripts/deploy.sh
-            - config/production.env.example
-            - migrations/001_add_feature.sql
+            <!-- List deployment branches, e.g., main, master, release/v4.2.0 -->
+            \`\`\`
+            
+            **Overview:**
+            \`\`\`
+            <!-- Provide key feature details and summary of changes -->
+            \`\`\`
+            
+            **Repository Details:**
+            
+            | S.No. | Repository Name | Release Number | Feature Details |
+            |-------|-----------------|----------------|-----------------|
+            | 1. | \`\`\`<!-- repo name -->\`\`\` | \`\`\`<!-- release tag -->\`\`\` | \`\`\`<!-- features -->\`\`\` |
+            | 2. | \`\`\`<!-- repo name -->\`\`\` | \`\`\`<!-- release tag -->\`\`\` | \`\`\`<!-- features -->\`\`\` |
+            | 3. | \`\`\`<!-- repo name -->\`\`\` | \`\`\`<!-- release tag -->\`\`\` | \`\`\`<!-- features -->\`\`\` |
+            
+            **Dependencies:**
+            - [ ] Dependencies updated: \`Yes\` / \`No\`
+            \`\`\`
+            <!-- List dependency changes, e.g.:
+            - npm i --legacy-peer-deps (new package bcryptjs)
+            - Start Server - Check nginx
             -->
             \`\`\`
             
-            **Environment-Specific Notes:**
-            - [ ] Staging/Dev environment tested
-            - [ ] Production deployment plan reviewed
-            - [ ] Zero-downtime deployment possible: \`Yes\` / \`No\`
-            
-            **Post-Deployment Verification:**
-            - [ ] Health checks defined
-            - [ ] Smoke tests identified
-            - [ ] Monitoring alerts configured
-            - [ ] Rollback procedure documented
-            
-            **Deployment Schedule:**
-            - [ ] Deployment window identified
-            - [ ] Team notified (if off-hours deployment)
-            - [ ] Maintenance window scheduled (if required)
-            
-            **Additional Notes:**
+            **Database Changes (Queries to run):**
+            - [ ] Database changes required: \`Yes\` / \`No\`
             \`\`\`
-            <!-- Add any specific deployment instructions, warnings, or notes here -->
+            <!-- List SQL queries or migration scripts if applicable -->
+            \`\`\`
+            
+            **Testing:**
+            - [ ] Unit tests passed
+            - [ ] Integration tests passed
+            - [ ] E2E tests passed
+            - [ ] Manual testing completed
+            \`\`\`
+            <!-- Add testing notes and results -->
+            \`\`\`
+            
+            **Known Issues:**
+            - [ ] Known issues: \`Yes\` / \`No\`
+            \`\`\`
+            <!-- List any known issues or N/A -->
+            \`\`\`
+            
+            **Contact Information:**
+            - Support Team Email: \`\`\`<!-- email -->\`\`\`
+            - Support Team Phone: \`\`\`<!-- phone -->\`\`\`
+            
+            **Attachments:**
+            - [ ] Deployment files attached/committed
+            \`\`\`
+            <!-- List attached files or N/A -->
             \`\`\`
             
             ---
-            **Note:** This is an automated reminder. Please fill out deployment notes before merging.`;
+            
+            ### For DevOps Team Use Only
+            *(To be filled by the DevOps team after deploying the release)*
+            
+            **Deployment Details:**
+            - Date and time of deployment: \`\`\`<!-- e.g., 23rd Jan 2025 [8:00PM] -->\`\`\`
+            - Deployed by: \`\`\`<!-- DevOps team member name -->\`\`\`
+            - Deployment Status: \`\`\`<!-- Successful / Failed / In Progress -->\`\`\`
+            
+            **Deployment Instructions:**
+            - [ ] Pre-deployment tasks completed (backups, etc.)
+            - [ ] Production environment accessed securely
+            - [ ] Latest release pulled from version control
+            - [ ] Dependencies installed/updated
+            - [ ] Database migrations run (if applicable)
+            - [ ] Application services restarted
+            - [ ] Deployment monitored and verified
+            
+            **Rollback Plan:**
+            - [ ] Rollback procedure documented
+            - [ ] Previous version tag identified: \`\`\`<!-- tag -->\`\`\`
+            - [ ] Database rollback scripts prepared (if applicable)
+            - [ ] Rollback tested in staging environment
+            
+            **Post-Deployment Checklist:**
+            - [ ] Service availability and response times verified
+            - [ ] System resources monitored
+            - [ ] Critical user scenarios tested
+            - [ ] Data integrity confirmed
+            - [ ] Error logs reviewed
+            - [ ] Security scans completed
+            - [ ] Server and infrastructure health checked
+            - [ ] Backup and disaster recovery procedures validated
+            
+            **Notes:**
+            \`\`\`
+            <!-- Add any additional deployment notes -->
+            \`\`\`
+            
+            **Acknowledgment:**
+            - [ ] Deployment acknowledged and system ready for production use
+            
+            ---
+            **Note:** This is an automated reminder. Please fill out the deployment release document before merging.`;
             
             // Check if comment already exists
             const comments = await github.rest.issues.listComments({
