@@ -1,12 +1,11 @@
 name: Enhanced Security Scan
 
 on:
-  push:
-    branches: [ main, master, develop, development ]
   pull_request:
     branches: [ main, master, develop, development ]
+    types: [opened, synchronize, reopened, ready_for_review]
   schedule:
-    # Run daily security scans
+    # Run daily security scans on main/master
     - cron: '0 2 * * *'
   workflow_dispatch:
 

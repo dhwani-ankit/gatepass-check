@@ -1,6 +1,9 @@
 name: Workflow Status Dashboard
 
 on:
+  pull_request:
+    branches: [ main, master, develop, development ]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_run:
     workflows: ["CI", "Quality Checks", "Generate Semantic Release", "Auto Request Review", "DevOps Checklist Reminder"]
     types: [completed]
@@ -57,11 +60,15 @@ jobs:
                 { name: 'Dhwani Release Bot Handler', file: 'bot-handler.yml' }
               ];
               
-              // Determine which ref to check
-              let ref = context.ref;
-              let prNumber = null;
+            // Determine which ref to check
+            let ref = context.ref;
+            let prNumber = null;
             
-            if (context.eventName === 'workflow_dispatch') {
+            if (context.eventName === 'pull_request') {
+              // For PR events, use the PR head branch
+              ref = `refs/heads/${context.payload.pull_request.head.ref}`;
+              prNumber = context.payload.pull_request.number;
+            } else if (context.eventName === 'workflow_dispatch') {
               if (context.payload.inputs.pr_number) {
                 prNumber = parseInt(context.payload.inputs.pr_number);
               } else if (context.payload.inputs.branch) {
@@ -245,7 +252,7 @@ jobs:
             }
       
       - name: Generate Status Comment
-        if: always() && (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && steps.collect-status.outcome == 'success'
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && steps.collect-status.outcome == 'success'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -318,7 +325,10 @@ jobs:
             const context = github.context;
             let prNumber = null;
             
-            if (context.eventName === 'workflow_dispatch' && context.payload.inputs.pr_number) {
+            if (context.eventName === 'pull_request') {
+              // For PR events, use the PR number directly
+              prNumber = context.payload.pull_request.number;
+            } else if (context.eventName === 'workflow_dispatch' && context.payload.inputs.pr_number) {
               prNumber = parseInt(context.payload.inputs.pr_number);
             } else if (context.eventName === 'workflow_run') {
               // Try to find associated PR

@@ -37,6 +37,26 @@ jobs:
             
             return { exists: !!botComment, commentId: botComment?.id };
       
+      - name: Check if deployment notes comment exists
+        id: check-deployment-notes
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            
+            const botComment = comments.data.find(
+              comment => comment.user.type === 'Bot' && 
+              comment.body.includes('Deployment Notes')
+            );
+            
+            return { exists: !!botComment, commentId: botComment?.id };
+      
       - name: Add or update DevOps checklist reminder
         if: steps.check-comment.outputs.exists != 'true' || github.event.action == 'opened'
         uses: actions/github-script@v7
@@ -65,7 +85,48 @@ jobs:
             - [ ] Configuration changes documented
             - [ ] Rollback plan prepared (if high-risk)
             
-            ### 📝 Deployment Notes
+            ---
+            **Note:** This is an automated reminder. Please review the full checklist in the PR description above.`;
+            
+            // Check if comment already exists
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            
+            const existingComment = comments.data.find(
+              comment => comment.user.type === 'Bot' && 
+              comment.body.includes('DevOps Checklist Reminder') &&
+              !comment.body.includes('Deployment Notes')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: checklist
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: checklist
+              });
+            }
+      
+      - name: Add or update Deployment Notes
+        if: steps.check-deployment-notes.outputs.exists != 'true' || github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const deploymentNotes = `## 📝 Deployment Notes
             
             Please provide deployment notes below (if applicable):
             
@@ -97,7 +158,7 @@ jobs:
             \`\`\`
             
             ---
-            **Note:** This is an automated reminder. Please review the full checklist in the PR description above.`;
+            **Note:** This is an automated reminder. Please fill out deployment notes before merging.`;
             
             // Check if comment already exists
             const comments = await github.rest.issues.listComments({
@@ -108,7 +169,7 @@ jobs:
             
             const existingComment = comments.data.find(
               comment => comment.user.type === 'Bot' && 
-              comment.body.includes('DevOps Checklist Reminder')
+              comment.body.includes('Deployment Notes')
             );
             
             if (existingComment) {
@@ -117,7 +178,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: existingComment.id,
-                body: checklist
+                body: deploymentNotes
               });
             } else {
               // Create new comment
@@ -125,7 +186,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: pr.number,
-                body: checklist
+                body: deploymentNotes
               });
             }
 
