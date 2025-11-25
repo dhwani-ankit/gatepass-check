@@ -1,3 +1,10 @@
+## [3.7.2](https://github.com/dhwani-ankit/gatepass-check/compare/v3.7.1...v3.7.2) (2025-11-25)
+
+
+### Bug Fixes
+
+* adding security-scan stale-management workflow-status ([a58e4a2](https://github.com/dhwani-ankit/gatepass-check/commit/a58e4a2caf61b5d4ce9f2f65f53e584fb06c5ddc))
+
 ## [3.7.1](https://github.com/dhwani-ankit/gatepass-check/compare/v3.7.0...v3.7.1) (2025-11-25)
 
 
