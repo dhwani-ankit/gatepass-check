@@ -1,0 +1,320 @@
+name: Workflow Status Dashboard
+
+on:
+  workflow_run:
+    workflows: ["CI", "Quality Checks", "Generate Semantic Release", "Auto Request Review", "DevOps Checklist Reminder"]
+    types: [completed]
+  schedule:
+    # Run every 6 hours to check status
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to check status for (optional)'
+        required: false
+        type: string
+      branch:
+        description: 'Branch to check status for (optional)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  collect-status:
+    name: Collect Workflow Statuses
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      
+      - name: Collect workflow statuses
+        id: collect-status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const context = github.context;
+            const workflows = [
+              { name: 'CI', file: 'ci.yml' },
+              { name: 'Quality Checks', file: 'code-quality.yml' },
+              { name: 'Generate Semantic Release', file: 'release.yml' },
+              { name: 'Auto Request Review', file: 'auto-reviewer.yml' },
+              { name: 'DevOps Checklist Reminder', file: 'devops-checklist.yml' },
+              { name: 'PR Labeler', file: 'pr-labeler.yml' },
+              { name: 'Dhwani Release Bot Handler', file: 'bot-handler.yml' }
+            ];
+            
+            // Determine which ref to check
+            let ref = context.ref;
+            let prNumber = null;
+            
+            if (context.eventName === 'workflow_dispatch') {
+              if (context.payload.inputs.pr_number) {
+                prNumber = parseInt(context.payload.inputs.pr_number);
+              } else if (context.payload.inputs.branch) {
+                ref = `refs/heads/${context.payload.inputs.branch}`;
+              }
+            } else if (context.eventName === 'workflow_run') {
+              ref = context.payload.workflow_run.head_branch 
+                ? `refs/heads/${context.payload.workflow_run.head_branch}`
+                : context.ref;
+            }
+            
+            // If PR number provided, get PR info
+            if (prNumber) {
+              try {
+                const { data: pr } = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: prNumber
+                });
+                ref = pr.head.ref ? `refs/heads/${pr.head.ref}` : ref;
+              } catch (error) {
+                console.log(`Could not fetch PR #${prNumber}: ${error.message}`);
+              }
+            }
+            
+            const statuses = [];
+            const now = new Date();
+            const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            for (const workflow of workflows) {
+              try {
+                // Get workflow runs
+                const { data: runs } = await github.rest.actions.listWorkflowRuns({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: workflow.file,
+                  branch: ref.replace('refs/heads/', ''),
+                  per_page: 5
+                });
+                
+                if (runs.workflow_runs.length === 0) {
+                  statuses.push({
+                    name: workflow.name,
+                    status: 'not_run',
+                    conclusion: null,
+                    url: null,
+                    lastRun: null,
+                    message: 'No recent runs'
+                  });
+                  continue;
+                }
+                
+                const latestRun = runs.workflow_runs[0];
+                const runDate = new Date(latestRun.created_at);
+                
+                statuses.push({
+                  name: workflow.name,
+                  status: latestRun.status,
+                  conclusion: latestRun.conclusion,
+                  url: latestRun.html_url,
+                  lastRun: latestRun.created_at,
+                  runId: latestRun.id,
+                  runNumber: latestRun.run_number,
+                  message: getStatusMessage(latestRun.status, latestRun.conclusion, runDate)
+                });
+              } catch (error) {
+                console.error(`Error fetching status for ${workflow.name}:`, error.message);
+                statuses.push({
+                  name: workflow.name,
+                  status: 'error',
+                  conclusion: null,
+                  url: null,
+                  lastRun: null,
+                  message: `Error: ${error.message}`
+                });
+              }
+            }
+            
+            function getStatusMessage(status, conclusion, date) {
+              if (status === 'completed') {
+                if (conclusion === 'success') {
+                  return `✅ Last run: ${formatDate(date)} - Success`;
+                } else if (conclusion === 'failure') {
+                  return `❌ Last run: ${formatDate(date)} - Failed`;
+                } else if (conclusion === 'cancelled') {
+                  return `⚠️ Last run: ${formatDate(date)} - Cancelled`;
+                } else {
+                  return `ℹ️ Last run: ${formatDate(date)} - ${conclusion || 'Unknown'}`;
+                }
+              } else if (status === 'in_progress') {
+                return `🔄 Running since ${formatDate(date)}`;
+              } else if (status === 'queued') {
+                return `⏳ Queued since ${formatDate(date)}`;
+              } else {
+                return `❓ Status: ${status}`;
+              }
+            }
+            
+            function formatDate(date) {
+              const now = new Date();
+              const diff = now - date;
+              const minutes = Math.floor(diff / 60000);
+              const hours = Math.floor(minutes / 60);
+              const days = Math.floor(hours / 24);
+              
+              if (minutes < 1) return 'just now';
+              if (minutes < 60) return `${minutes}m ago`;
+              if (hours < 24) return `${hours}h ago`;
+              if (days < 7) return `${days}d ago`;
+              return date.toLocaleDateString();
+            }
+            
+            // Calculate overall health
+            const completed = statuses.filter(s => s.status === 'completed');
+            const successful = completed.filter(s => s.conclusion === 'success');
+            const failed = completed.filter(s => s.conclusion === 'failure');
+            const inProgress = statuses.filter(s => s.status === 'in_progress' || s.status === 'queued');
+            
+            const health = {
+              total: statuses.length,
+              successful: successful.length,
+              failed: failed.length,
+              inProgress: inProgress.length,
+              notRun: statuses.filter(s => s.status === 'not_run').length,
+              score: statuses.length > 0 
+                ? Math.round((successful.length / completed.length) * 100) 
+                : 0
+            };
+            
+            // Create status report
+            const report = {
+              timestamp: now.toISOString(),
+              ref: ref,
+              health: health,
+              workflows: statuses
+            };
+            
+            console.log('Workflow Status Report:', JSON.stringify(report, null, 2));
+            
+            // Set outputs using core module
+            const core = require('@actions/core');
+            core.setOutput('status-report', JSON.stringify(report));
+            core.setOutput('health-score', health.score);
+            core.setOutput('failed-count', health.failed);
+            
+            return report;
+      
+      - name: Generate Status Comment
+        if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const report = JSON.parse('${{ steps.collect-status.outputs.status-report }}');
+            const health = report.health;
+            
+            // Create markdown table
+            let table = '## 📊 Workflow Status Dashboard\n\n';
+            table += `**Overall Health:** ${health.score}% (${health.successful}/${health.total} successful)\n\n`;
+            table += `| Workflow | Status | Last Run | Details |\n`;
+            table += `|----------|--------|----------|---------|\n`;
+            
+            for (const workflow of report.workflows) {
+              const statusIcon = workflow.conclusion === 'success' ? '✅' 
+                : workflow.conclusion === 'failure' ? '❌'
+                : workflow.status === 'in_progress' ? '🔄'
+                : workflow.status === 'queued' ? '⏳'
+                : workflow.status === 'not_run' ? '⚪'
+                : '❓';
+              
+              const statusText = workflow.conclusion || workflow.status || 'Not run';
+              const lastRun = workflow.lastRun 
+                ? new Date(workflow.lastRun).toLocaleString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })
+                : 'N/A';
+              
+              const link = workflow.url 
+                ? `[View Run #${workflow.runNumber}](${workflow.url})`
+                : '-';
+              
+              table += `| ${statusIcon} **${workflow.name}** | ${statusText} | ${lastRun} | ${link} |\n`;
+            }
+            
+            table += `\n---\n`;
+            table += `**Generated:** ${new Date(report.timestamp).toLocaleString()}\n`;
+            table += `**Branch/Ref:** ${report.ref}\n`;
+            
+            // Try to find PR to comment on
+            const context = github.context;
+            let prNumber = null;
+            
+            if (context.eventName === 'workflow_dispatch' && context.payload.inputs.pr_number) {
+              prNumber = parseInt(context.payload.inputs.pr_number);
+            } else if (context.eventName === 'workflow_run') {
+              // Try to find associated PR
+              const branch = context.payload.workflow_run.head_branch;
+              if (branch) {
+                const { data: prs } = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  head: `${context.repo.owner}:${branch}`,
+                  state: 'open'
+                });
+                if (prs.length > 0) {
+                  prNumber = prs[0].number;
+                }
+              }
+            }
+            
+            if (prNumber) {
+              // Post comment on PR
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: table
+              });
+              console.log(`Posted status report to PR #${prNumber}`);
+            } else {
+              // Create a summary output
+              console.log('Status Report:');
+              console.log(table);
+              const core = require('@actions/core');
+              core.summary.addRaw(table).write();
+            }
+      
+      - name: Set Status Check
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const report = JSON.parse('${{ steps.collect-status.outputs.status-report }}');
+            const health = report.health;
+            
+            const state = health.failed > 0 ? 'failure' 
+              : health.inProgress > 0 ? 'pending'
+              : 'success';
+            
+            const description = health.failed > 0 
+              ? `${health.failed} workflow(s) failed`
+              : health.inProgress > 0
+              ? `${health.inProgress} workflow(s) in progress`
+              : `All workflows passing (${health.score}% health)`;
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: state,
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions`,
+              description: description,
+              context: 'workflow-status/dashboard'
+            });
+
