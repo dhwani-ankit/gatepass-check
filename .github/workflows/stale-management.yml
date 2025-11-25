@@ -1,0 +1,65 @@
+name: Stale PR and Issue Management
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Mark Stale PRs and Issues
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Mark stale PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # PR Configuration
+          stale-pr-message: |
+            This PR has been marked as stale because it has been open for 30 days with no activity.
+            It will be closed in 7 days if no further activity occurs.
+            
+            Please:
+            - Review and address any feedback
+            - Update the PR if needed
+            - Add a comment to keep it active
+          close-pr-message: |
+            This PR has been automatically closed due to inactivity.
+            Feel free to reopen it when you're ready to continue.
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+          stale-pr-label: 'stale'
+          exempt-pr-labels: 'work-in-progress,blocked,priority-high,security'
+          only-pr-labels: ''
+          
+          # Issue Configuration
+          stale-issue-message: |
+            This issue has been marked as stale because it has been open for 60 days with no activity.
+            It will be closed in 14 days if no further activity occurs.
+            
+            Please:
+            - Provide an update if this is still relevant
+            - Close the issue if it's been resolved
+            - Add a comment to keep it active
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity.
+            Feel free to reopen it if needed.
+          days-before-issue-stale: 60
+          days-before-issue-close: 14
+          stale-issue-label: 'stale'
+          exempt-issue-labels: 'work-in-progress,blocked,priority-high,security,feature-request'
+          only-issue-labels: ''
+          
+          # General Configuration
+          operations-per-run: 30
+          remove-stale-when-updated: true
+          ascending: false
+          delete-branch: false
+
