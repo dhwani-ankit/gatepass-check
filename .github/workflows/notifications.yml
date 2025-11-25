@@ -81,8 +81,10 @@ jobs:
               prNumber: prNumber ? prNumber.toString() : ''
             };
             
-            const core = require('@actions/core');
-            core.setOutput('details', JSON.stringify(details));
+            // Set output using environment file (github-script doesn't have @actions/core)
+            const fs = require('fs');
+            const detailsJson = JSON.stringify(details);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `details<<EOF\n${detailsJson}\nEOF\n`);
             
             return details;
       

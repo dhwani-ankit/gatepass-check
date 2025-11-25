@@ -1,11 +1,8 @@
 name: Workflow Status Dashboard
 
 on:
-  pull_request:
-    branches: [ main, master, develop, development ]
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_run:
-    workflows: ["CI", "Quality Checks", "Generate Semantic Release", "Auto Request Review", "DevOps Checklist Reminder"]
+    workflows: ["CI", "Quality Checks", "Enhanced Security Scan", "Workflow Status Dashboard"]
     types: [completed]
   schedule:
     # Run every 6 hours to check status
@@ -46,8 +43,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const core = require('@actions/core');
-            
+            // github-script provides core automatically, use it directly
             try {
               const context = github.context;
               const workflows = [
@@ -64,11 +60,7 @@ jobs:
               let ref = context.ref;
               let prNumber = null;
               
-              if (context.eventName === 'pull_request') {
-                // For PR events, use the PR head branch
-                ref = `refs/heads/${context.payload.pull_request.head.ref}`;
-                prNumber = context.payload.pull_request.number;
-              } else if (context.eventName === 'workflow_dispatch') {
+              if (context.eventName === 'workflow_dispatch') {
                 if (context.payload.inputs.pr_number) {
                   prNumber = parseInt(context.payload.inputs.pr_number);
                 } else if (context.payload.inputs.branch) {
@@ -215,11 +207,12 @@ jobs:
               
               console.log('Workflow Status Report:', JSON.stringify(report, null, 2));
               
-              // Set outputs using core module
+              // Set outputs using environment file (github-script doesn't have @actions/core)
               const reportJson = JSON.stringify(report);
-              core.setOutput('status-report', reportJson);
-              core.setOutput('health-score', health.score);
-              core.setOutput('failed-count', health.failed);
+              const fs = require('fs');
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `status-report<<EOF\n${reportJson}\nEOF\n`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `health-score=${health.score}\n`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `failed-count=${health.failed}\n`);
               console.log('Outputs set successfully');
               
               return report;
@@ -243,16 +236,18 @@ jobs:
                 error: error.message
               };
               
-              core.setOutput('status-report', JSON.stringify(errorReport));
-              core.setOutput('health-score', 0);
-              core.setOutput('failed-count', 0);
+              const fs = require('fs');
+              const errorJson = JSON.stringify(errorReport);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `status-report<<EOF\n${errorJson}\nEOF\n`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `health-score=0\n`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `failed-count=0\n`);
               
               // Don't fail the step, let downstream steps handle the error
               console.log('Error report set, continuing...');
             }
       
       - name: Generate Status Comment
-        if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && steps.collect-status.outcome == 'success'
+        if: always() && (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && steps.collect-status.outcome == 'success'
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -325,10 +320,7 @@ jobs:
             const context = github.context;
             let prNumber = null;
             
-            if (context.eventName === 'pull_request') {
-              // For PR events, use the PR number directly
-              prNumber = context.payload.pull_request.number;
-            } else if (context.eventName === 'workflow_dispatch' && context.payload.inputs.pr_number) {
+            if (context.eventName === 'workflow_dispatch' && context.payload.inputs.pr_number) {
               prNumber = parseInt(context.payload.inputs.pr_number);
             } else if (context.eventName === 'workflow_run') {
               // Try to find associated PR
