@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Check if checklist comment exists
         id: check-comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -39,7 +39,7 @@ jobs:
       
       - name: Check if deployment notes comment exists
         id: check-deployment-notes
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -59,7 +59,7 @@ jobs:
       
       - name: Add or update DevOps checklist reminder
         if: steps.check-comment.outputs.exists != 'true' || github.event.action == 'opened'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -121,7 +121,7 @@ jobs:
       
       - name: Add or update Deployment Notes
         if: steps.check-deployment-notes.outputs.exists != 'true' || github.event.action == 'opened'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -135,6 +135,28 @@ jobs:
             - [ ] Environment variables updated (if any)
             - [ ] Dependencies updated/installed
             - [ ] Service restart required: \`Yes\` / \`No\`
+            
+            **Deployment Files:**
+            - [ ] Deployment scripts attached/committed
+            - [ ] Configuration files updated
+            - [ ] Migration scripts included (if applicable)
+            - [ ] Deployment documentation attached
+            
+            **📎 Attach Deployment Files:**
+            
+            To attach deployment files, you can:
+            1. **Commit files to this PR** - Add deployment scripts/configs to the repository
+            2. **Link to files** - Reference files in comments (e.g., \`deploy/scripts/deploy.sh\`)
+            3. **Upload to artifacts** - Use workflow artifacts for large files
+            
+            **File References:**
+            \`\`\`
+            <!-- List deployment files here, e.g.:
+            - deploy/scripts/deploy.sh
+            - config/production.env.example
+            - migrations/001_add_feature.sql
+            -->
+            \`\`\`
             
             **Environment-Specific Notes:**
             - [ ] Staging/Dev environment tested
