@@ -1,3 +1,10 @@
+## [3.7.1](https://github.com/dhwani-ankit/gatepass-check/compare/v3.7.0...v3.7.1) (2025-11-25)
+
+
+### Performance Improvements
+
+* add new feature ([83483bf](https://github.com/dhwani-ankit/gatepass-check/commit/83483bf1bcb9654b71490d583b23444ab9667f25))
+
 # [3.6.0](https://github.com/dhwani-ankit/gatepass-check/compare/v3.5.0...v3.6.0) (2025-11-24)
 
 
