@@ -39,7 +39,6 @@ jobs:
       
       - name: Generate Deployment Notes automatically (Comment 1)
         if: steps.check-deployment-notes.outputs.exists != 'true' || github.event.action == 'opened'
-        if: steps.check-deployment-notes.outputs.exists != 'true' || github.event.action == 'opened'
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -316,7 +315,6 @@ jobs:
             return { exists: !!botComment, commentId: botComment?.id };
       
       - name: Add or update DevOps checklist reminder (Comment 2)
-        if: steps.check-comment.outputs.exists != 'true' || github.event.action == 'opened'
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -372,6 +370,7 @@ jobs:
                 comment_id: existingComment.id,
                 body: checklist
               });
+              console.log('Updated existing DevOps Checklist comment');
             } else {
               // Create new comment
               await github.rest.issues.createComment({
@@ -380,5 +379,6 @@ jobs:
                 issue_number: pr.number,
                 body: checklist
               });
+              console.log('Created new DevOps Checklist comment');
             }
 
