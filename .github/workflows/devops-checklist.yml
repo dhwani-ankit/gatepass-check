@@ -65,6 +65,38 @@ jobs:
             - [ ] Configuration changes documented
             - [ ] Rollback plan prepared (if high-risk)
             
+            ### 📝 Deployment Notes
+            
+            Please provide deployment notes below (if applicable):
+            
+            **Deployment Instructions:**
+            - [ ] Deployment steps documented
+            - [ ] Environment variables updated (if any)
+            - [ ] Dependencies updated/installed
+            - [ ] Service restart required: \`Yes\` / \`No\`
+            
+            **Environment-Specific Notes:**
+            - [ ] Staging/Dev environment tested
+            - [ ] Production deployment plan reviewed
+            - [ ] Zero-downtime deployment possible: \`Yes\` / \`No\`
+            
+            **Post-Deployment Verification:**
+            - [ ] Health checks defined
+            - [ ] Smoke tests identified
+            - [ ] Monitoring alerts configured
+            - [ ] Rollback procedure documented
+            
+            **Deployment Schedule:**
+            - [ ] Deployment window identified
+            - [ ] Team notified (if off-hours deployment)
+            - [ ] Maintenance window scheduled (if required)
+            
+            **Additional Notes:**
+            \`\`\`
+            <!-- Add any specific deployment instructions, warnings, or notes here -->
+            \`\`\`
+            
+            ---
             **Note:** This is an automated reminder. Please review the full checklist in the PR description above.`;
             
             // Check if comment already exists
