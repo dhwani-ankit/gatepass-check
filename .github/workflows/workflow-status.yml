@@ -46,7 +46,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const core = require('@actions/core');
+            // Use coreModule to avoid conflicts with github-script's core
+            const coreModule = require('@actions/core');
             
             try {
               const context = github.context;
@@ -217,9 +218,9 @@ jobs:
               
               // Set outputs using core module
               const reportJson = JSON.stringify(report);
-              core.setOutput('status-report', reportJson);
-              core.setOutput('health-score', health.score);
-              core.setOutput('failed-count', health.failed);
+              coreModule.setOutput('status-report', reportJson);
+              coreModule.setOutput('health-score', health.score);
+              coreModule.setOutput('failed-count', health.failed);
               console.log('Outputs set successfully');
               
               return report;
@@ -243,9 +244,9 @@ jobs:
                 error: error.message
               };
               
-              core.setOutput('status-report', JSON.stringify(errorReport));
-              core.setOutput('health-score', 0);
-              core.setOutput('failed-count', 0);
+              coreModule.setOutput('status-report', JSON.stringify(errorReport));
+              coreModule.setOutput('health-score', 0);
+              coreModule.setOutput('failed-count', 0);
               
               // Don't fail the step, let downstream steps handle the error
               console.log('Error report set, continuing...');

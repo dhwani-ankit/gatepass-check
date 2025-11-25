@@ -81,8 +81,9 @@ jobs:
               prNumber: prNumber ? prNumber.toString() : ''
             };
             
-            const core = require('@actions/core');
-            core.setOutput('details', JSON.stringify(details));
+            // Use coreModule to avoid conflicts with github-script's core
+            const coreModule = require('@actions/core');
+            coreModule.setOutput('details', JSON.stringify(details));
             
             return details;
       
