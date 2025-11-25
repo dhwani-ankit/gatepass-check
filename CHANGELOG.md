@@ -1,3 +1,10 @@
+## [3.7.5](https://github.com/dhwani-ankit/gatepass-check/compare/v3.7.4...v3.7.5) (2025-11-25)
+
+
+### Bug Fixes
+
+* remove some changes ([d798aaa](https://github.com/dhwani-ankit/gatepass-check/commit/d798aaa478df73218a5a31a0679262d511d445b1))
+
 ## [3.7.4](https://github.com/dhwani-ankit/gatepass-check/compare/v3.7.3...v3.7.4) (2025-11-25)
 
 
