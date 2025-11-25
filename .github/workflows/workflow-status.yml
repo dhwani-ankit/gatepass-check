@@ -42,7 +42,7 @@ jobs:
       
       - name: Collect workflow statuses
         id: collect-status
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -253,7 +253,7 @@ jobs:
       
       - name: Generate Status Comment
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && steps.collect-status.outcome == 'success'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -365,7 +365,7 @@ jobs:
       
       - name: Set Status Check
         if: always() && steps.collect-status.outcome == 'success'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

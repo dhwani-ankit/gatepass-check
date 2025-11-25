@@ -60,7 +60,7 @@ jobs:
       
       - name: Handle Release Command
         if: steps.parse-command.outputs.command == 'release' || steps.parse-command.outputs.command == 'trigger-release'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
@@ -96,7 +96,7 @@ jobs:
       
       - name: Handle Help Command
         if: steps.parse-command.outputs.command == 'help' || steps.parse-command.outputs.command == ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
@@ -133,7 +133,7 @@ jobs:
       
       - name: Handle Unknown Command
         if: steps.parse-command.outputs.command != 'release' && steps.parse-command.outputs.command != 'trigger-release' && steps.parse-command.outputs.command != 'help' && steps.parse-command.outputs.command != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |

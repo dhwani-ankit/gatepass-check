@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Check if checklist comment exists
         id: check-comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -39,7 +39,7 @@ jobs:
       
       - name: Check if deployment notes comment exists
         id: check-deployment-notes
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -59,7 +59,7 @@ jobs:
       
       - name: Add or update DevOps checklist reminder
         if: steps.check-comment.outputs.exists != 'true' || github.event.action == 'opened'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -121,7 +121,7 @@ jobs:
       
       - name: Add or update Deployment Notes
         if: steps.check-deployment-notes.outputs.exists != 'true' || github.event.action == 'opened'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
