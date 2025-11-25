@@ -359,8 +359,7 @@ jobs:
               // Create a summary output
               console.log('Status Report:');
               console.log(table);
-              const core = require('@actions/core');
-              core.summary.addRaw(table).write();
+              // Summary will be available in workflow summary
             }
       
       - name: Set Status Check

@@ -136,6 +136,28 @@ jobs:
             - [ ] Dependencies updated/installed
             - [ ] Service restart required: \`Yes\` / \`No\`
             
+            **Deployment Files:**
+            - [ ] Deployment scripts attached/committed
+            - [ ] Configuration files updated
+            - [ ] Migration scripts included (if applicable)
+            - [ ] Deployment documentation attached
+            
+            **📎 Attach Deployment Files:**
+            
+            To attach deployment files, you can:
+            1. **Commit files to this PR** - Add deployment scripts/configs to the repository
+            2. **Link to files** - Reference files in comments (e.g., \`deploy/scripts/deploy.sh\`)
+            3. **Upload to artifacts** - Use workflow artifacts for large files
+            
+            **File References:**
+            \`\`\`
+            <!-- List deployment files here, e.g.:
+            - deploy/scripts/deploy.sh
+            - config/production.env.example
+            - migrations/001_add_feature.sql
+            -->
+            \`\`\`
+            
             **Environment-Specific Notes:**
             - [ ] Staging/Dev environment tested
             - [ ] Production deployment plan reviewed
